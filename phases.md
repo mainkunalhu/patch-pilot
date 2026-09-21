@@ -55,8 +55,8 @@ patch-pilot/
 - Exit: make eval-quick (5 bugs) green; README number measured.
 
 ## Phase 7 — Polish + CI
-- ci.yml: ruff+pytest, bun lint/build, compose health; README arch + demo + hiring line; roadmap: Hono BFF (gateway/), TS/vitest sandbox
-- Exit: green CI, clone→make up→demo works.
+- `make ci`: ruff+pytest, bun lint/build (GitHub Actions removed; CI runs locally only); README arch + demo + hiring line; roadmap: Hono BFF (gateway/), TS/vitest sandbox
+- Exit: `make ci` green, clone→make up→demo works.
 
 ## Deferred (explicit non-goals MVP)
 - gateway/ Hono BFF, TS AST exec + vitest sandbox, HF fallback embed, auth/rate-limit.

@@ -1,4 +1,4 @@
-.PHONY: dev up down db-direct db-schema lint test eval-quick eval
+.PHONY: dev up down db-direct db-schema lint test ci eval-quick eval
 
 # One command to run everything (postgres+schema, ollama+model,
 # sandbox image, FastAPI, Next.js) — and one to stop it all.
@@ -29,6 +29,10 @@ lint:
 
 test:
 	uv run --project api pytest api/tests -q
+
+# Local CI (GitHub Actions removed): everything the workflow ran.
+ci: lint test
+	cd web && bun run build
 
 eval-quick:
 	uv run --project api python evals/run_evals.py --limit 5
