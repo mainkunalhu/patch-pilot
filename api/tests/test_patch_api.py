@@ -48,8 +48,9 @@ def _indexed_repo_id() -> str:
     return r.json()["repo_id"]
 
 
-def test_patch_without_key_returns_503():
+def test_patch_without_key_returns_503(monkeypatch):
     _need_services()
+    monkeypatch.setattr("patchpilot.config.settings.groq_api_key", "")
     repo_id = _indexed_repo_id()
     r = client.post("/patch", json={"repo_id": repo_id, "bug_text": "off by one"})
     assert r.status_code == 503

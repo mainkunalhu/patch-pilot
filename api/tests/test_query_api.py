@@ -28,8 +28,10 @@ def _need_services():
         pytest.skip(f"Ollama unreachable: {e}")
 
 
-def test_index_persist_then_query_finds_faulty_function():
+def test_index_persist_then_query_finds_faulty_function(monkeypatch):
     _need_services()
+    # Deterministic: disable rewrite so ranking (not the LLM) is under test.
+    monkeypatch.setattr("patchpilot.config.settings.groq_api_key", "")
     r = client.post("/repos/index", json={"local_path": FIXTURE, "persist": True})
     assert r.status_code == 200, r.text
     repo_id = r.json()["repo_id"]
@@ -45,7 +47,7 @@ def test_index_persist_then_query_finds_faulty_function():
     )
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["rewritten"] is False  # no GROQ_API_KEY in test env
+    assert body["rewritten"] is False  # rewrite disabled above
     names = [h["name"] for h in body["hunks"]]
     assert "add" in names
     assert names[0] == "add"

@@ -37,7 +37,8 @@ def test_rrf_fuse_partial_rankings():
     assert fused[5] > fused[6]
 
 
-def test_rewrite_falls_back_without_key():
+def test_rewrite_falls_back_without_key(monkeypatch):
+    monkeypatch.setattr("patchpilot.config.settings.groq_api_key", "")
     q, rewritten = maybe_rewrite_query("add returns wrong sum")
     assert q == "add returns wrong sum"
     assert rewritten is False

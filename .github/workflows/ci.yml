@@ -1,18 +1,50 @@
 name: ci
 on: [push, pull_request]
+
+env:
+  DATABASE_URL: postgresql://patchpilot:patchpilot@localhost:5432/patchpilot
+  OLLAMA_HOST: http://localhost:11434
+
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: patchpilot
+          POSTGRES_PASSWORD: patchpilot
+          POSTGRES_DB: patchpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U patchpilot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - run: psql "$DATABASE_URL" -f infra/sql/001_schema.sql
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: curl -fsSL https://ollama.com/install.sh | sh
+      - run: |
+          ollama serve > /tmp/ollama.log 2>&1 &
+          ollama pull nomic-embed-text
       - run: uv run --project api ruff check api/src api/tests
-      - run: uv run --project api pytest -q
+      - run: uv run --project api ruff format --check api/src api/tests
+      - run: uv run --project api pytest api/tests -q
+
   web:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install --cwd web
-      - run: bun --cwd web lint
-      - run: bun --cwd web build
+      - run: bun install
+      - run: bun run lint
+      - run: bun run build
