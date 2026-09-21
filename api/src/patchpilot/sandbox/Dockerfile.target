@@ -1,0 +1,9 @@
+# PatchPilot sandbox image: bare Python + pytest for isolated test runs.
+# Target repos needing extra deps will get per-repo images in a later phase.
+FROM python:3.12-slim
+
+RUN pip install --no-cache-dir pytest==9.1.1
+
+WORKDIR /work
+
+CMD ["python", "-m", "pytest", "-q"]

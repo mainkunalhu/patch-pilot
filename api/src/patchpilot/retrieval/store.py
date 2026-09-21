@@ -208,3 +208,43 @@ def save_run(
     except psycopg.Error as e:
         conn.rollback()
         raise StoreError(f"save_run failed: {e}") from e
+
+
+@dataclass
+class RunRow:
+    id: str
+    repo_id: str | None
+    bug_text: str
+    status: str
+    diff: str | None
+    test_log: str | None
+    prompt_tokens: int
+    completion_tokens: int
+    tokens_per_sec: float | None
+
+
+def get_run(conn: psycopg.Connection, run_id: str) -> RunRow | None:
+    try:
+        row = conn.execute(
+            """
+            SELECT id, repo_id, bug_text, status, diff, test_log,
+                   prompt_tokens, completion_tokens, tokens_per_sec
+            FROM runs WHERE id = %s
+            """,
+            (run_id,),
+        ).fetchone()
+    except psycopg.Error as e:
+        raise StoreError(f"get_run failed: {e}") from e
+    if row is None:
+        return None
+    return RunRow(
+        id=row[0],
+        repo_id=row[1],
+        bug_text=row[2],
+        status=row[3],
+        diff=row[4],
+        test_log=row[5],
+        prompt_tokens=row[6] or 0,
+        completion_tokens=row[7] or 0,
+        tokens_per_sec=row[8],
+    )

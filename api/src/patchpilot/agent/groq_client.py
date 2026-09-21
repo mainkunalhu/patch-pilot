@@ -19,8 +19,19 @@ Rules:
 - Output the diff and nothing else: no explanations, no prose outside the diff.
 - You may wrap the diff in a single ```diff fenced block, or output it raw.
 - Use `--- a/<path>` / `+++ b/<path>` headers with paths relative to the repo root.
+- EVERY hunk header MUST include line counts: `@@ -<start>,<count> +<start>,<count> @@`.
+  Never emit a bare `@@` header — git will reject the patch.
 - Keep hunks minimal: only change lines needed to fix the bug.
 - Do not rename functions, do not reformat unrelated code.
+
+Example of a valid diff:
+--- a/calc.py
++++ b/calc.py
+@@ -1,3 +1,2 @@
+ def add(a: int, b: int) -> int:
+-    # BUG: off-by-one
+-    return a + b + 1
++    return a + b
 """
 
 

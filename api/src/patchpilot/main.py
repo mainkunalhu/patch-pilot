@@ -6,6 +6,7 @@ from patchpilot.routers import (
     patches_router,
     query_router,
     repos_router,
+    runs_router,
 )
 
 
@@ -15,6 +16,7 @@ def create_app() -> FastAPI:
     app.include_router(repos_router)
     app.include_router(query_router)
     app.include_router(patches_router)
+    app.include_router(runs_router)
     return app
 
 
