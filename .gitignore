@@ -26,6 +26,9 @@ next-env.d.ts
 pgdata/
 ollama-data/
 
+# Eval reports (regenerated per run)
+evals/results/
+
 # OS / editor
 .DS_Store
 .idea/

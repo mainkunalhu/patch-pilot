@@ -34,7 +34,7 @@ patch-pilot/
 - Exit: fixture → N funcs + M tests via API.
 
 ## Phase 2 — Hybrid retrieval + pgvector
-- Tables repos/chunks/runs; embedding dim 768 HNSW; Ollama batch+cache; BM25+RRF; llama-3.1-8b-instant query-rewrite/rerank
+- Tables repos/chunks/runs; embedding dim 768 HNSW; Ollama batch+cache; BM25+RRF; openai/gpt-oss-20b query-rewrite/rerank
 - POST /query → top-k hunks. Exit: faulty func in top-5.
 
 ## Phase 3 — Coder + reliability guardrails
@@ -63,7 +63,7 @@ patch-pilot/
 
 ## Original spec reference
 About: Point it at any Python/TS repo, describe a bug, and it finds the faulty functions, writes a patch, runs the tests in an isolated container, and shows a proven diff. A tiny Groq-powered Cursor/SWE-agent.
-Tech: Python (FastAPI, Tree-sitter AST chunking, Docker sandbox pytest runner), TypeScript (Next.js diff UI, Hono API), Groq (openai/gpt-oss-120b coder, llama-3.1-8b-instant retriever), local nomic-embed + BM25, Postgres + pgvector, DeepEval
+Tech: Python (FastAPI, Tree-sitter AST chunking, Docker sandbox pytest runner), TypeScript (Next.js diff UI, Hono API), Groq (openai/gpt-oss-120b coder, openai/gpt-oss-20b retriever), local nomic-embed + BM25, Postgres + pgvector, DeepEval
 Flow: Index any repo (AST functions + tests, not raw files) -> query bug -> retrieve relevant hunks -> coder agent proposes patch -> runs in Docker sandbox -> test log -> fixer loop max 3x -> outputs unified diff + test proof.
 Skills: code chunking (AST vs naive), hybrid code search, agentic code loop, sandbox exec, SWE-style evals.
 Hiring line: Groq code agent, 42% fix-rate on 50 curated bugs, sandbox-verified diffs, 500+ tok/s via Groq.

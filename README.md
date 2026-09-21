@@ -6,7 +6,7 @@ Point it at any Python repo, describe a bug, and it finds the faulty functions, 
 
 - Python: FastAPI, Tree-sitter AST chunking, Docker sandbox pytest runner
 - TS: Next.js diff UI (Hono BFF deferred to `gateway/`)
-- Groq: `openai/gpt-oss-120b` coder, `llama-3.1-8b-instant` retriever/rerank
+- Groq: `openai/gpt-oss-120b` coder, `openai/gpt-oss-20b` retriever-rewrite/judge
 - Retrieval: local nomic-embed (Ollama) + BM25, Postgres + pgvector
 - Evals: DeepEval, SWE-style fail-to-pass / pass-to-pass
 
@@ -30,6 +30,14 @@ infra/    # docker-compose (pgvector + ollama) + sql schema
 fixtures/ # sample buggy targets
 evals/    # 50 curated bugs + DeepEval harness
 ```
+
+## Evals (measured)
+
+```bash
+make eval-quick   # 5 curated bugs vs live stack (API + pgvector + Ollama + Docker)
+```
+
+Starter set (2026-09-21): **5/5 fixed (100%), median 362 tok/s**, DeepEval GEval correctness 0.7–1.0 on all fixed diffs. Reports land in `evals/results/` (git-ignored). Dataset schema supports 50 cases; `dataset.jsonl` curates 5 so far — verbal 42%-on-50 hiring line stays a target until measured.
 
 ## Roadmap
 
