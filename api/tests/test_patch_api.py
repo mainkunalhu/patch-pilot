@@ -62,9 +62,7 @@ def test_patch_with_mocked_coder_logs_run(monkeypatch):
     def fake_propose(workdir, bug_text, hunks, max_attempts=2):
         assert hunks, "coder should receive retrieved hunks"
         return Proposal(
-            validation=Validation(
-                ok=True, diff=GOOD_DIFF, changed_files=["calc.py"]
-            ),
+            validation=Validation(ok=True, diff=GOOD_DIFF, changed_files=["calc.py"]),
             result=CoderResult(
                 raw="```diff\n" + GOOD_DIFF + "```",
                 prompt_tokens=100,

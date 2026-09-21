@@ -50,9 +50,7 @@ def _need_services():
         embed_query("connectivity probe")
     except EmbedError as e:
         pytest.skip(f"Ollama unreachable: {e}")
-    r = subprocess.run(
-        ["docker", "info"], capture_output=True, timeout=30, check=False
-    )
+    r = subprocess.run(["docker", "info"], capture_output=True, timeout=30, check=False)
     if r.returncode != 0:
         pytest.skip("Docker daemon unreachable")
 
@@ -138,9 +136,7 @@ def test_fix_loop_wires_real_propose_patch(monkeypatch):
     from patchpilot.agent.coder import HunkContext
     from patchpilot.agent.fixer import fix_loop
 
-    r = subprocess.run(
-        ["docker", "info"], capture_output=True, timeout=30, check=False
-    )
+    r = subprocess.run(["docker", "info"], capture_output=True, timeout=30, check=False)
     if r.returncode != 0:
         pytest.skip("Docker daemon unreachable")
 

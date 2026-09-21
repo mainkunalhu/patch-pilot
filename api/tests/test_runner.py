@@ -27,9 +27,7 @@ NON_APPLYING_DIFF = """--- a/nope.py
 
 
 def _need_docker():
-    r = subprocess.run(
-        ["docker", "info"], capture_output=True, timeout=30, check=False
-    )
+    r = subprocess.run(["docker", "info"], capture_output=True, timeout=30, check=False)
     if r.returncode != 0:
         pytest.skip("Docker daemon unreachable")
 

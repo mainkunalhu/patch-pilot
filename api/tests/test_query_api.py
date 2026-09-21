@@ -54,7 +54,5 @@ def test_index_persist_then_query_finds_faulty_function():
 
 def test_query_unknown_repo_404():
     _need_services()
-    r = client.post(
-        "/query", json={"repo_id": "repo_doesnotexist", "bug_text": "boom"}
-    )
+    r = client.post("/query", json={"repo_id": "repo_doesnotexist", "bug_text": "boom"})
     assert r.status_code == 404

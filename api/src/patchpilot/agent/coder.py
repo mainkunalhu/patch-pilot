@@ -50,9 +50,7 @@ def propose_patch(
     assert last_result is not None and last_validation is not None
     if attempts > 1:
         last_result.attempts = attempts
-    return Proposal(
-        validation=last_validation, result=last_result, attempts=attempts
-    )
+    return Proposal(validation=last_validation, result=last_result, attempts=attempts)
 
 
 __all__ = ["CoderError", "HunkContext", "Proposal", "propose_patch"]

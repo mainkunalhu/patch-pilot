@@ -76,9 +76,7 @@ def generate_patch(
     """One coder call. For repair retries pass the validator/test failure
     in test_log — the model sees what went wrong last attempt."""
     if not settings.groq_api_key.strip():
-        raise CoderError(
-            "GROQ_API_KEY is not set. Export it to use the coder agent."
-        )
+        raise CoderError("GROQ_API_KEY is not set. Export it to use the coder agent.")
     user_parts = [
         f"BUG REPORT:\n{bug_text}",
         f"FAULTY HUNKS:\n{_hunks_block(hunks)}",

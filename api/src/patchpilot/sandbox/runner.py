@@ -43,7 +43,9 @@ def _snapshot_root() -> str | None:
         return None
 
 
-def _docker(args: list[str], timeout: int, input_text: str | None = None) -> subprocess.CompletedProcess:
+def _docker(
+    args: list[str], timeout: int, input_text: str | None = None
+) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
             ["docker", *args],
@@ -66,8 +68,14 @@ def ensure_image() -> None:
     if r.stdout.strip():
         return
     r = _docker(
-        ["build", "-t", IMAGE, "-f", str(_DOCKERFILE_DIR / "Dockerfile.target"),
-         str(_DOCKERFILE_DIR)],
+        [
+            "build",
+            "-t",
+            IMAGE,
+            "-f",
+            str(_DOCKERFILE_DIR / "Dockerfile.target"),
+            str(_DOCKERFILE_DIR),
+        ],
         timeout=300,
     )
     if r.returncode != 0:
@@ -77,13 +85,16 @@ def ensure_image() -> None:
 def _run_once(snapshot: Path, test_cmd: list[str], timeout_s: int) -> TestResult:
     r = _docker(
         [
-            "run", "--rm",
+            "run",
+            "--rm",
             "--network=none",
             "--memory=1g",
             "--cpus=2",
             "--pids-limit=256",
-            "-v", f"{snapshot}:/work",
-            "-w", "/work",
+            "-v",
+            f"{snapshot}:/work",
+            "-w",
+            "/work",
             IMAGE,
             *test_cmd,
         ],
@@ -112,7 +123,11 @@ def run_tests(
             repo_source,
             snap,
             ignore=shutil.ignore_patterns(
-                ".git", "__pycache__", ".venv", ".pytest_cache", ".next",
+                ".git",
+                "__pycache__",
+                ".venv",
+                ".pytest_cache",
+                ".next",
                 "node_modules",
             ),
         )
@@ -131,7 +146,7 @@ def run_tests(
                     passed=False,
                     returncode=r.returncode,
                     log=f"diff did not apply in sandbox: "
-                        f"{(r.stderr or r.stdout).strip()}",
+                    f"{(r.stderr or r.stdout).strip()}",
                 )
         try:
             first = _run_once(snap, cmd, timeout_s)
@@ -154,9 +169,7 @@ def run_tests(
             # Pass-on-retry counts (like pytest-rerunfailures) but is flagged
             # so evals can exclude flaky proofs.
             second.flaky = True
-            second.log = (
-                f"{first.log}\n--- retry passed (FLAKY) ---\n{second.log}"
-            )
+            second.log = f"{first.log}\n--- retry passed (FLAKY) ---\n{second.log}"
         else:
             second.log = f"{first.log}\n--- retry (same failure) ---\n{second.log}"
         return second
