@@ -1,13 +1,13 @@
 .PHONY: dev up down db-direct db-schema lint test eval-quick eval
 
-# Requires Docker Compose plugin. If `docker compose` is missing (e.g. colima
-# without plugin), install it: `brew install docker-compose`, or use db-direct
-# followed by db-schema.
+# One command to run everything (postgres+schema, ollama+model,
+# sandbox image, FastAPI, Next.js) — and one to stop it all.
+# Idempotent: already-running pieces are detected and skipped.
 up:
-	docker compose -f infra/docker-compose.yml up -d
+	bash infra/dev-up.sh
 
 down:
-	docker compose -f infra/docker-compose.yml down
+	bash infra/dev-down.sh
 
 db-direct:
 	docker run -d --name patchpilot-db -e POSTGRES_USER=patchpilot -e POSTGRES_PASSWORD=patchpilot -e POSTGRES_DB=patchpilot -p 5432:5432 pgvector/pgvector:pg16

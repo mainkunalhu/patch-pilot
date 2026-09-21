@@ -34,14 +34,13 @@ Prerequisites: `uv`, `bun`, `docker`, `ollama`, `gh` optional.
 git clone https://github.com/mainkunalhu/patch-pilot.git && cd patch-pilot
 cp .env.example .env          # add GROQ_API_KEY
 
-# Services: Postgres+pgvector + Ollama
-make up                       # needs Docker Compose plugin; else:
-make db-direct && make db-schema   # fallback without the plugin
-ollama pull nomic-embed-text
+make up     # everything: postgres+schema, ollama+model, sandbox image,
+            # FastAPI :8000, Next.js :3000 (idempotent, skips what's running)
+make down   # stop it all (leaves a pre-existing ollama daemon alone)
 
-# Dev servers
-make dev-api                  # http://localhost:8000 (docs at /docs)
-make dev-web                  # http://localhost:3000
+# Manual alternatives
+make db-direct && make db-schema   # postgres without the Compose plugin
+make dev-api / make dev-web        # foreground dev servers instead
 
 # Checks
 make lint && make test

@@ -29,6 +29,9 @@ ollama-data/
 # Eval reports (regenerated per run)
 evals/results/
 
+# Local run state (pidfiles, dev logs from `make up`)
+.patchpilot/
+
 # OS / editor
 .DS_Store
 .idea/
