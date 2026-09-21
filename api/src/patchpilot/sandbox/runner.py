@@ -29,6 +29,7 @@ class TestResult:
     timed_out: bool = False
     flaky: bool = False
     runs: int = 1
+    env_error: bool = False
     extra: dict = field(default_factory=dict)
 
 
@@ -82,7 +83,9 @@ def ensure_image() -> None:
         raise SandboxError(f"sandbox image build failed: {r.stderr.strip()}")
 
 
-def _run_once(snapshot: Path, test_cmd: list[str], timeout_s: int) -> TestResult:
+def _run_once(
+    snapshot: Path, test_cmd: list[str], timeout_s: int, image: str
+) -> TestResult:
     r = _docker(
         [
             "run",
@@ -95,7 +98,7 @@ def _run_once(snapshot: Path, test_cmd: list[str], timeout_s: int) -> TestResult
             f"{snapshot}:/work",
             "-w",
             "/work",
-            IMAGE,
+            image,
             *test_cmd,
         ],
         timeout=timeout_s + 30,
@@ -110,11 +113,33 @@ def run_tests(
     test_cmd: list[str] | None = None,
     timeout_s: int = 180,
 ) -> TestResult:
-    """Apply diff (if given) to a temp copy of repo_source and pytest it."""
+    """Apply diff (if given) to a temp copy of repo_source and test it.
+
+    Resolves a per-repo image when dependency files are detected
+    (Track B); node runtimes are detected but not yet executable.
+    """
+    from patchpilot.sandbox.detect import detect_runtime
+
     try:
         ensure_image()
     except SandboxError as e:
-        return TestResult(passed=False, returncode=-1, log=str(e))
+        return TestResult(passed=False, returncode=-1, log=str(e), env_error=True)
+    spec = detect_runtime(repo_source)
+    if spec.runtime == "node":
+        return TestResult(
+            passed=False,
+            returncode=-1,
+            log="node runtime detected but not supported yet (vitest sandbox is next)",
+            env_error=True,
+        )
+    image = IMAGE
+    if spec.dep_files:
+        from patchpilot.sandbox.images import ensure_repo_image
+
+        try:
+            image = ensure_repo_image(repo_source, spec.dep_files)
+        except SandboxError as e:
+            return TestResult(passed=False, returncode=-1, log=str(e), env_error=True)
     cmd = test_cmd or ["python", "-m", "pytest", "-q"]
     tmp = Path(tempfile.mkdtemp(prefix="patchpilot-sandbox-", dir=_snapshot_root()))
     try:
@@ -149,7 +174,7 @@ def run_tests(
                     f"{(r.stderr or r.stdout).strip()}",
                 )
         try:
-            first = _run_once(snap, cmd, timeout_s)
+            first = _run_once(snap, cmd, timeout_s, image)
         except SandboxError as e:
             if "timed out" in str(e):
                 return TestResult(
@@ -157,13 +182,15 @@ def run_tests(
                 )
             return TestResult(passed=False, returncode=-1, log=str(e))
         if first.passed:
+            first.extra["image"] = image
             return first
         # Flaky policy: one retry; pass-on-retry is flaky, not proof.
         try:
-            second = _run_once(snap, cmd, timeout_s)
+            second = _run_once(snap, cmd, timeout_s, image)
         except SandboxError as e:
             first.log += f"\n[retry aborted: {e}]"
             return first
+        second.extra["image"] = image
         second.runs = 2
         if second.passed:
             # Pass-on-retry counts (like pytest-rerunfailures) but is flagged

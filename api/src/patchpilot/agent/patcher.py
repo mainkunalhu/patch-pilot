@@ -1,9 +1,10 @@
-"""Patch validation: extract → git apply --check → syntax re-parse.
+"""Patch validation: extract → normalize headers → git apply --check → re-parse.
 
 Validation runs against a temp COPY of the repo, never the original.
-Two gates:
-  1. `git apply --check` — diff applies cleanly.
-  2. tree-sitter re-parse of every changed .py file — no syntax errors.
+Three gates:
+  1. Hunk headers recounted from bodies (small-model count errors fixed).
+  2. `git apply --check` — diff applies cleanly.
+  3. tree-sitter re-parse of every changed .py file — no syntax errors.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ PY_LANGUAGE = Language(tspython.language())
 
 _FENCE = re.compile(r"```(?:diff)?\s*\n(.*?)```", re.DOTALL)
 _PLUSPLUS = re.compile(r"^\+\+\+\s+b/(.+)$", re.MULTILINE)
+_HUNK = re.compile(r"^@@(?:\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?)?\s*@@(.*)$")
 
 
 @dataclass
@@ -50,6 +52,60 @@ def extract_diff(raw: str) -> str:
 
 def changed_paths(diff: str) -> list[str]:
     return _PLUSPLUS.findall(diff)
+
+
+def normalize_hunk_headers(diff: str) -> str:
+    """Recount `@@ -a,b +c,d @@` headers from hunk bodies.
+
+    Small coder models routinely emit wrong line counts (or bare `@@`).
+    Counts are deterministic given the body, so fix them instead of
+    rejecting: old = context + removed, new = context + added. Start
+    lines are kept when present, else tracked sequentially from 1,1.
+    """
+    out: list[str] = []
+    old_start, new_start = 1, 1
+    header: re.Match | None = None
+    tail = ""
+    body_old = body_new = 0
+    body: list[str] = []
+
+    def flush() -> None:
+        nonlocal old_start, new_start, header, tail, body_old, body_new, body
+        if header is None:
+            return
+        if header.group(1) is not None:
+            old_start = int(header.group(1))
+        if header.group(3) is not None:
+            new_start = int(header.group(3))
+        out.append(f"@@ -{old_start},{body_old} +{new_start},{body_new} @@{tail}")
+        out.extend(body)
+        old_start += body_old
+        new_start += body_new
+        header, tail, body_old, body_new, body = None, "", 0, 0, []
+
+    for line in diff.splitlines():
+        if line.strip() == "@@":
+            line = "@@ @@"
+        m = _HUNK.match(line)
+        if m:
+            flush()
+            header, tail = m, m.group(5) or ""
+            continue
+        if header is not None and line.startswith(("--- ", "+++ ", "diff --git ")):
+            flush()
+            out.append(line)
+            continue
+        if header is not None:
+            if not line.startswith("\\"):
+                if line.startswith((" ", "-")):
+                    body_old += 1
+                if line.startswith((" ", "+")):
+                    body_new += 1
+            body.append(line)
+        else:
+            out.append(line)
+    flush()
+    return "\n".join(out) + "\n"
 
 
 def _git_apply_check(workdir: Path, diff: str) -> str | None:
@@ -87,7 +143,7 @@ def _syntax_errors(workdir: Path, paths: list[str]) -> list[str]:
 
 
 def validate_patch(workdir: Path, raw: str) -> Validation:
-    diff = extract_diff(raw)
+    diff = normalize_hunk_headers(extract_diff(raw))
     if not diff.strip():
         return Validation(ok=False, error="empty diff")
     paths = changed_paths(diff)

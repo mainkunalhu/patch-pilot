@@ -72,7 +72,13 @@ def create_patch(body: PatchRequest):
                 "re-index with a local_path source to propose patches",
             )
         hunks = [
-            HunkContext(path=h.chunk.path, name=h.chunk.name, content=h.chunk.content)
+            HunkContext(
+                path=h.chunk.path,
+                name=h.chunk.name,
+                content=h.chunk.content,
+                start_line=h.chunk.start_line,
+                end_line=h.chunk.end_line,
+            )
             for h in result.hunks
         ]
         try:

@@ -129,6 +129,44 @@ def test_runs_unknown_run_404():
     assert r.status_code == 404
 
 
+def test_fix_loop_env_failed_does_not_retry(monkeypatch):
+    """Broken environments short-circuit instead of burning coder retries."""
+    from patchpilot.agent import fixer as fixer_module
+    from patchpilot.agent.coder import HunkContext
+    from patchpilot.agent.fixer import fix_loop
+    from patchpilot.sandbox.runner import TestResult
+
+    calls: list = []
+
+    def fake_propose(workdir, bug_text, hunks, test_log=None, max_attempts=2):
+        calls.append(test_log)
+        return Proposal(
+            validation=Validation(ok=True, diff=GOOD_DIFF, changed_files=["calc.py"]),
+            result=CoderResult(
+                raw=GOOD_DIFF, prompt_tokens=10, completion_tokens=5, latency_s=0.05
+            ),
+            attempts=1,
+        )
+
+    def fake_run(*args, **kwargs):
+        return TestResult(
+            passed=False, returncode=-1, log="image build failed", env_error=True
+        )
+
+    monkeypatch.setattr("patchpilot.agent.fixer.propose_patch", fake_propose)
+    monkeypatch.setattr(fixer_module, "run_tests", fake_run)
+    fix = fix_loop(
+        Path(FIXTURE),
+        "add is off by one",
+        [HunkContext(path="calc.py", name="add", content="def add")],
+        max_attempts=3,
+        timeout_s=60,
+    )
+    assert fix.status == "env_failed"
+    assert fix.attempts == 1
+    assert len(calls) == 1
+
+
 def test_fix_loop_wires_real_propose_patch(monkeypatch):
     """Regression: fix_loop must call propose_patch with a compatible
     signature. Stubs only the Groq call; validation + sandbox are real."""

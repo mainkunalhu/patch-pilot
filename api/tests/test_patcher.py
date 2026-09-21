@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from patchpilot.agent.patcher import changed_paths, extract_diff, validate_patch
+from patchpilot.agent.patcher import (
+    changed_paths,
+    extract_diff,
+    normalize_hunk_headers,
+    validate_patch,
+)
 
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "python-demo"
 
@@ -70,3 +75,24 @@ def test_validate_syntax_breaking_diff_rejected():
 def test_validate_empty_diff_rejected():
     v = validate_patch(FIXTURE, "just some prose, no diff")
     assert not v.ok
+
+
+def test_normalize_fixes_wrong_counts():
+    bad = GOOD_DIFF.replace("@@ -1,3 +1,2 @@", "@@ -1,3 +1,3 @@")
+    assert normalize_hunk_headers(bad) == GOOD_DIFF
+
+
+def test_normalize_fixes_bare_header():
+    bad = GOOD_DIFF.replace("@@ -1,3 +1,2 @@", "@@")
+    assert normalize_hunk_headers(bad) == GOOD_DIFF
+
+
+def test_normalize_keeps_correct_diff():
+    assert normalize_hunk_headers(GOOD_DIFF) == GOOD_DIFF
+
+
+def test_validate_accepts_wrong_count_diff():
+    bad = GOOD_DIFF.replace("@@ -1,3 +1,2 @@", "@@ -1,9 +1,9 @@")
+    v = validate_patch(FIXTURE, bad)
+    assert v.ok, v.error
+    assert "@@ -1,3 +1,2 @@" in v.diff

@@ -2,6 +2,10 @@
 
 Point it at any Python repo, describe a bug, and it finds the faulty functions, writes a patch, runs the tests in an isolated Docker sandbox, and shows a proven diff. A tiny Groq-powered Cursor/SWE-agent.
 
+![PatchPilot live demo: index → retrieve → sandbox-verified fix](docs/demo.gif)
+
+*Live demo (15s): index a buggy repo, retrieve faulty hunks, fixer loop returns a validated diff plus the sandbox test proof. Reproduce it: `bash docs/demo.sh` with the stack running.*
+
 > Hiring line: Groq code agent, 100% fix-rate on 50 curated bugs (sandbox-verified diffs), ~340 tok/s via Groq.
 
 ## How it works
@@ -68,7 +72,7 @@ make eval-quick   # --limit 5;  make eval  runs the full dataset
 ```
 
 - Full set, 2026-09-21: **50/50 fixed (100%), median ~340 tok/s** (reports in `evals/results/`, git-ignored). 46 fixed on attempt 1, 4 needed retries. DeepEval GEval correctness mean 0.96 (min 0.6) as secondary signal.
-- Honest limits: micro-repos (1–2 files each), stdlib-only sandbox image. Every case verified: fail_to_pass red + pass_to_pass green at baseline — so the 100% is real but on small bugs, not SWE-bench scale.
+- Honest limits: micro-repos (1–2 files each). Sandbox builds per-repo images from `requirements*.txt`/`pyproject.toml` (cached by dep hash); dep-free repos use the base image. Every case verified: fail_to_pass red + pass_to_pass green at baseline — so the 100% is real but on small bugs, not SWE-bench scale. Node/vitest support is next.
 
 ## Layout
 

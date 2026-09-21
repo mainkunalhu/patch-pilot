@@ -21,6 +21,8 @@ Rules:
 - Use `--- a/<path>` / `+++ b/<path>` headers with paths relative to the repo root.
 - EVERY hunk header MUST include line counts: `@@ -<start>,<count> +<start>,<count> @@`.
   Never emit a bare `@@` header — git will reject the patch.
+- Hunk `start` MUST be the function's actual first line (given as
+  "lines S-E" above each hunk). Count `count` = context + changed lines.
 - Keep hunks minimal: only change lines needed to fix the bug.
 - Do not rename functions, do not reformat unrelated code.
 
@@ -40,6 +42,8 @@ class HunkContext:
     path: str
     name: str
     content: str
+    start_line: int | None = None
+    end_line: int | None = None
 
 
 @dataclass
@@ -63,7 +67,10 @@ class CoderError(RuntimeError):
 def _hunks_block(hunks: list[HunkContext]) -> str:
     parts = []
     for h in hunks:
-        parts.append(f"--- {h.path} :: {h.name} ---\n{h.content}")
+        loc = (
+            f" (lines {h.start_line}-{h.end_line})" if h.start_line is not None else ""
+        )
+        parts.append(f"--- {h.path} :: {h.name}{loc} ---\n{h.content}")
     return "\n\n".join(parts)
 
 

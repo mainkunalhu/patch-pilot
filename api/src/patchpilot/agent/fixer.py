@@ -16,7 +16,7 @@ from patchpilot.sandbox.runner import TestResult, run_tests
 
 @dataclass
 class FixResult:
-    status: str  # fixed | tests_failed | patch_invalid
+    status: str  # fixed | tests_failed | patch_invalid | env_failed
     diff: str | None = None
     test_log: str | None = None
     attempts: int = 0
@@ -54,6 +54,19 @@ def fix_loop(
         last_diff = v.diff
         test: TestResult = run_tests(workdir, diff=v.diff, timeout_s=timeout_s)
         last_log = test.log
+        if test.env_error:
+            # Broken environment (image build, unsupported runtime):
+            # retrying the coder cannot help.
+            tok_s = completion_tokens / weighted_latency if weighted_latency else 0.0
+            return FixResult(
+                status="env_failed",
+                diff=v.diff,
+                test_log=test.log,
+                attempts=rounds,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                tok_s=tok_s,
+            )
         if test.passed:
             tok_s = completion_tokens / weighted_latency if weighted_latency else 0.0
             return FixResult(

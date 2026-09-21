@@ -41,11 +41,15 @@ def propose_patch(
         last_validation = validate_patch(workdir, last_result.raw)
         if last_validation.ok:
             break
+        locations = ", ".join(
+            f"{h.path}:{h.start_line}" for h in hunks if h.start_line is not None
+        )
         test_log = (
             f"Validator rejected the diff:\n{last_validation.error}\n"
             "Remember: output a valid unified diff with "
             "`--- a/<path>` / `+++ b/<path>` headers and hunk headers like "
-            "`@@ -1,3 +1,2 @@` (line counts required)."
+            "`@@ -1,3 +1,2 @@` (line counts required). "
+            f"Hunks must start at the functions' real first lines: {locations}."
         )
     assert last_result is not None and last_validation is not None
     if attempts > 1:

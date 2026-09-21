@@ -1,0 +1,11 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1790022926,"command":"bash docs/demo.sh","env":{"SHELL":"/bin/zsh"}}
+[0.010, "o", "\r\n\u001b[1;36m== PatchPilot live demo — health check ==\u001b[0m\r\n"]
+[1.020, "o", "{\"status\":\"ok\"}"]
+[0.000, "o", "\r\n"]
+[1.005, "o", "\r\n\u001b[1;36m== 1. Index the buggy repo (AST functions, not raw files) ==\u001b[0m\r\n"]
+[1.045, "o", "repo: repo_876df9950c16\r\nfiles: 2 | functions: 2 | tests: 1\r\n"]
+[1.058, "o", "\r\n\u001b[1;36m== 2. Retrieve the faulty hunks ==\u001b[0m\r\n"]
+[1.407, "o", "- calc.py::add (score 0.0325)\r\n- test_calc.py::test_add (score 0.0325)\r\n"]
+[1.012, "o", "\r\n\u001b[1;36m== 3. Propose + sandbox-verify the fix (fixer loop, up to 3 attempts) ==\u001b[0m\r\n"]
+[2.143, "o", "status: fixed | attempts: 1 | tok/s: 340.6\r\n\r\n--- proven diff ---\r\n--- a/calc.py\r\n+++ b/calc.py\r\n@@ -1,3 +1,3 @@\r\n def add(a: int, b: int) -> int:\r\n-    # BUG: off-by-one for demo purposes (Phase 1 fixture)\r\n-    return a + b + 1\r\n+    # Fixed off-by-one error\r\n+    return a + b\r\n\r\n--- sandbox test proof ---\r\n.                                                                        [100%]\r\n1 passed in 0.01s\r\n\r\nfull proof: GET http://localhost:8000/runs/run_cb40ca1c838c\r\n"]
+[0.002, "x", "0"]
