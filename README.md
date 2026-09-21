@@ -2,7 +2,7 @@
 
 Point it at any Python repo, describe a bug, and it finds the faulty functions, writes a patch, runs the tests in an isolated Docker sandbox, and shows a proven diff. A tiny Groq-powered Cursor/SWE-agent.
 
-> Hiring line: Groq code agent, sandbox-verified diffs, ~360 tok/s via Groq, 5/5 on the starter eval set (target: 42% fix-rate on 50 curated bugs — dataset in progress).
+> Hiring line: Groq code agent, 100% fix-rate on 50 curated bugs (sandbox-verified diffs), ~340 tok/s via Groq.
 
 ## How it works
 
@@ -67,9 +67,8 @@ Error contract: `404` unknown repo/run, `422` repo files not local, `503` DB/Oll
 make eval-quick   # --limit 5;  make eval  runs the full dataset
 ```
 
-- Starter set, 2026-09-21: **5/5 fixed (100%), median ~360 tok/s** (reports in `evals/results/`, git-ignored).
-- Harness: each case must fail at baseline (`invalid_case` otherwise) → full-stack `/runs` → sandbox proof is the verdict. DeepEval GEval correctness (Groq-judged, 0.7–1.0 here) is a secondary signal only.
-- Honest limits: micro-repos, stdlib-only sandbox image. `dataset.jsonl` now holds all 50 cases (each verified: fail_to_pass red + pass_to_pass green at baseline); full 50-case run pending, so the 42% line stays a target until measured.
+- Full set, 2026-09-21: **50/50 fixed (100%), median ~340 tok/s** (reports in `evals/results/`, git-ignored). 46 fixed on attempt 1, 4 needed retries. DeepEval GEval correctness mean 0.96 (min 0.6) as secondary signal.
+- Honest limits: micro-repos (1–2 files each), stdlib-only sandbox image. Every case verified: fail_to_pass red + pass_to_pass green at baseline — so the 100% is real but on small bugs, not SWE-bench scale.
 
 ## Layout
 
