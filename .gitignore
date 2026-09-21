@@ -1,0 +1,33 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+api/.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+web/node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# Docker / data
+pgdata/
+ollama-data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

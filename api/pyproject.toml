@@ -1,0 +1,33 @@
+[project]
+name = "patchpilot"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "mainkunalhu", email = "natwarlaluzumaki@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "deepeval>=4.2.3",
+    "fastapi>=0.141.1",
+    "groq>=1.7.0",
+    "httpx>=0.28.1",
+    "pgvector>=0.5.0",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "pytest>=9.1.1",
+    "rank-bm25>=0.2.2",
+    "ruff>=0.16.8",
+    "tree-sitter>=0.26.0",
+    "tree-sitter-python>=0.25.0",
+    "uvicorn[standard]>=0.53.0",
+]
+
+[project.scripts]
+patchpilot = "patchpilot:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,28 @@
+.PHONY: dev up down db-direct lint test eval-quick
+
+# Requires Docker Compose plugin. If `docker compose` is missing (e.g. colima
+# without plugin), install it: `brew install docker-compose`, or use db-direct.
+up:
+	docker compose -f infra/docker-compose.yml up -d
+
+down:
+	docker compose -f infra/docker-compose.yml down
+
+db-direct:
+	docker run -d --name patchpilot-db -e POSTGRES_USER=patchpilot -e POSTGRES_PASSWORD=patchpilot -e POSTGRES_DB=patchpilot -p 5432:5432 pgvector/pgvector:pg16
+
+dev-api:
+	uv run --project api uvicorn patchpilot.main:app --reload --port 8000
+
+dev-web:
+	bun --cwd web dev
+
+lint:
+	uv run --project api ruff check api/src api/tests
+	bun --cwd web lint
+
+test:
+	uv run --project api pytest api/tests -q
+
+eval-quick:
+	uv run --project api python evals/run_evals.py --limit 5
