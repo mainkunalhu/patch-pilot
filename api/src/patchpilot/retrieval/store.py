@@ -34,6 +34,13 @@ class StoredChunk:
     distance: float | None = None
 
 
+@dataclass
+class StoredRepo:
+    id: str
+    source: str
+    sha: str | None
+
+
 def connect() -> psycopg.Connection:
     try:
         conn = psycopg.connect(settings.database_url, connect_timeout=5)
@@ -151,3 +158,53 @@ def vector_search(
     except psycopg.Error as e:
         raise StoreError(f"vector_search failed: {e}") from e
     return [_row_to_chunk(r) for r in rows]
+
+
+def get_repo(conn: psycopg.Connection, repo_id: str) -> StoredRepo | None:
+    try:
+        row = conn.execute(
+            "SELECT id, source, sha FROM repos WHERE id = %s", (repo_id,)
+        ).fetchone()
+    except psycopg.Error as e:
+        raise StoreError(f"get_repo failed: {e}") from e
+    if row is None:
+        return None
+    return StoredRepo(id=row[0], source=row[1], sha=row[2])
+
+
+def save_run(
+    conn: psycopg.Connection,
+    run_id: str,
+    repo_id: str,
+    bug_text: str,
+    status: str,
+    diff: str | None = None,
+    test_log: str | None = None,
+    prompt_tokens: int = 0,
+    completion_tokens: int = 0,
+    tokens_per_sec: float | None = None,
+) -> None:
+    try:
+        conn.execute(
+            """
+            INSERT INTO runs
+              (id, repo_id, bug_text, status, diff, test_log,
+               prompt_tokens, completion_tokens, tokens_per_sec)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                run_id,
+                repo_id,
+                bug_text,
+                status,
+                diff,
+                test_log,
+                prompt_tokens,
+                completion_tokens,
+                tokens_per_sec,
+            ),
+        )
+        conn.commit()
+    except psycopg.Error as e:
+        conn.rollback()
+        raise StoreError(f"save_run failed: {e}") from e
