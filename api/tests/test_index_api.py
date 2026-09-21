@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+
 from patchpilot.main import app
 
 client = TestClient(app)
@@ -8,7 +9,7 @@ FIXTURE = str(Path(__file__).resolve().parents[2] / "fixtures" / "python-demo")
 
 
 def test_index_local_fixture():
-    r = client.post("/repos/index", json={"local_path": FIXTURE})
+    r = client.post("/repos/index", json={"local_path": FIXTURE, "persist": False})
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["stats"]["files"] == 2
