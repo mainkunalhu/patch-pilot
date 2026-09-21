@@ -69,7 +69,7 @@ make eval-quick   # --limit 5;  make eval  runs the full dataset
 
 - Starter set, 2026-09-21: **5/5 fixed (100%), median ~360 tok/s** (reports in `evals/results/`, git-ignored).
 - Harness: each case must fail at baseline (`invalid_case` otherwise) → full-stack `/runs` → sandbox proof is the verdict. DeepEval GEval correctness (Groq-judged, 0.7–1.0 here) is a secondary signal only.
-- Honest limits: micro-repos, stdlib-only sandbox image, 5 cases so far. The 42%-on-50 line stays a target until the dataset reaches 50.
+- Honest limits: micro-repos, stdlib-only sandbox image. `dataset.jsonl` now holds all 50 cases (each verified: fail_to_pass red + pass_to_pass green at baseline); full 50-case run pending, so the 42% line stays a target until measured.
 
 ## Layout
 
